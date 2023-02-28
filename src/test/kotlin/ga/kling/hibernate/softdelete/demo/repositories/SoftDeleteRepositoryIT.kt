@@ -160,4 +160,35 @@ class SoftDeleteRepositoryIT {
         assert(deathlyHallowsCategories?.any { it.name == "Fantasy" } == true)
         assert(halfBloodPrinceCategories?.any { it.name == "Fantasy" } == true)
     }
+
+    @Test
+    fun `Deleted entities will correctly be retrieved`() {
+        val bookIdToDelete = savedBooks.find { it.title == "Harry Potter and the Half-Blood Prince" }?.id
+        bookIdToDelete?.let {
+            bookRepository.deleteById(it)
+        }
+        val categoryIdToDelete = savedCategories.find { it.name == "Mystery" }?.id
+        categoryIdToDelete?.let {
+            categoryRepository.deleteById(it)
+        }
+
+        val authorIdToDelete = savedAuthors.find { it.lastName == "Brown" }?.id
+        authorIdToDelete?.let {
+            authorRepository.deleteById(it)
+        }
+        entityManager.flush()
+        entityManager.clear()
+
+        val retrievedBooks = bookRepository.findAllDeleted()
+        assert(retrievedBooks.size == 1)
+        assert(retrievedBooks.any { it.title == "Harry Potter and the Half-Blood Prince"})
+
+        val retrievedCategories = categoryRepository.findAllDeleted()
+        assert(retrievedCategories.size == 1)
+        assert(retrievedCategories.any { it.name == "Mystery" })
+
+        val retrievedAuthors = authorRepository.findAllDeleted()
+        assert(retrievedAuthors.size == 1)
+        assert(retrievedAuthors.any { it.lastName == "Brown" })
+    }
 }

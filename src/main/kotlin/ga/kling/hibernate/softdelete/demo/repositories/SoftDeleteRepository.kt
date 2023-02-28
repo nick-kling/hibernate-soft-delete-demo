@@ -16,6 +16,10 @@ interface SoftDeleteRepository<T: Any, ID: Any>: CrudRepository<T, ID> {
     @Query("select e from #{#entityName} e where e.deleted = false and e.id = ?1")
     override fun findById(id: ID): Optional<T>
 
+    // Only fetch the entities which have been soft deleted
+    @Query("select e from #{#entityName} e where e.deleted = true")
+    fun findAllDeleted(): List<T>
+
     // Update deleted property instead of deleting
     @Modifying
     @Query("update #{#entityName} e set e.deleted = true where e.id = ?1")
